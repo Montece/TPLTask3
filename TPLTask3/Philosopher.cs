@@ -2,7 +2,7 @@
 
 internal sealed class Philosopher : IDisposable
 {
-    private static readonly TimeSpan MaxThinkTime = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan _maxThinkTime = TimeSpan.FromSeconds(1);
 
     private readonly Random _random = new();
     private readonly BowlOfSpaghetti _bowlOfSpaghetti;
@@ -28,7 +28,7 @@ internal sealed class Philosopher : IDisposable
 
         _cancellation ??= new();
 
-        _dinnerThread = new Thread(DinnerCycle);
+        _dinnerThread = new(DinnerCycle);
 
         _dinnerThread.Start();
     }
@@ -48,6 +48,19 @@ internal sealed class Philosopher : IDisposable
         _cancellation = null;
     }
 
+    public void WaitForEndDinner()
+    {
+        if (_dinnerThread == null || _cancellation == null)
+        {
+            return;
+        }
+
+        _dinnerThread.Join();
+
+        _cancellation.Dispose();
+        _cancellation = null;
+    }
+
     private void DinnerCycle(object? arguments)
     {
         while (!_bowlOfSpaghetti.IsEmpty && (_cancellation != null && !_cancellation.IsCancellationRequested))
@@ -58,7 +71,7 @@ internal sealed class Philosopher : IDisposable
 
     private void Dinner()
     {
-        Thinking(MaxThinkTime);
+        Thinking(_maxThinkTime);
         _leftFork.Capture();
         _rightFork.Capture();
         _bowlOfSpaghetti.Eat();

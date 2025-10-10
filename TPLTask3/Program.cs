@@ -19,3 +19,8 @@ foreach (var philosopher in philosophers)
 {
     philosopher.StartDinner();
 }
+
+Console.WriteLine("Dinner ended");
+
+Console.WriteLine("Press ENTER to exit...");
+Console.ReadLine();
