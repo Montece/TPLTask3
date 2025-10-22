@@ -2,12 +2,13 @@
 
 internal sealed class Dinner : IDisposable
 {
-    public bool IsStarted { get; private set; }
+    private bool IsStarted { get; set; }
 
     private readonly ILogger _logger;
     private readonly List<Fork> _forks = [];
 
     private Philosopher[]? _philosophers;
+    private bool _disposed;
 
     public Dinner(ILogger logger)
     {
@@ -16,10 +17,14 @@ internal sealed class Dinner : IDisposable
 
     public void Start()
     {
+        ThrowIfDisposed();
+
         if (IsStarted)
         {
             return;
         }
+
+        IsStarted = true;
 
         _philosophers = new Philosopher[5];
 
@@ -58,6 +63,8 @@ internal sealed class Dinner : IDisposable
 
     public void WaitForEnd()
     {
+        ThrowIfDisposed();
+
         if (!IsStarted)
         {
             return;
@@ -67,20 +74,65 @@ internal sealed class Dinner : IDisposable
         {
             philosopher.WaitForEndDinner();
         }
+
+        _logger.Write("Dinner ended");
     }
 
     public void Stop()
     {
+        ThrowIfDisposed();
+
         if (!IsStarted)
         {
             return;
         }
 
+        IsStarted = false;
 
+        foreach (var philosopher in _philosophers)
+        {
+            philosopher.StopDinner();
+        }
+    }
+
+    private void Dispose(bool disposing)
+    {
+        ThrowIfDisposed();
+
+        _disposed = true;
+
+        if (disposing)
+        {
+            if (_philosophers == null)
+            {
+                foreach (var philosopher in _philosophers)
+                {
+                    philosopher.Dispose();
+                }
+            }
+
+            foreach (var philosopher in _philosophers)
+            {
+                philosopher.Dispose();
+            }
+        }
     }
 
     public void Dispose()
     {
-        // TODO release managed resources here
+        Dispose(true);
+    }
+
+    ~Dinner()
+    {
+        Dispose(false);
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new InvalidOperationException("Object was disposed.");
+        }
     }
 }

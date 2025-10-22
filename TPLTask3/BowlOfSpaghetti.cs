@@ -2,7 +2,7 @@
 
 internal sealed class BowlOfSpaghetti
 {
-    public bool IsEmpty => _currentServingsCount > 0;
+    public bool IsEmpty => _currentServingsCount <= 0;
     
     private int _currentServingsCount;
 
